@@ -1,0 +1,20 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "supabase",
+  "version": "0.1.0",
+  "description": "Connect to Supabase projects through the official Supabase MCP server for documentation, schema inspection, diagnostics, and safe development workflows.",
+  "author": { "name": "OpenAI" },
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Supabase",
+        "shortDescription": "Work with Supabase projects",
+        "longDescription": "Use Supabase's official MCP server to inspect schemas, search docs, review logs and advisors, and develop Supabase projects. Starts in read-only mode and scopes tool access to documentation, database, debugging, and development features.",
+        "developerName": "OpenAI",
+        "category": "Developer tools",
+        "capabilities": ["Interactive"],
+        "defaultPrompt": "Help me inspect or develop my Supabase project safely."
+      }
+    }
+  }
+}

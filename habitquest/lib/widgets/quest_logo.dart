@@ -32,9 +32,13 @@ class HabitQuestWordmark extends StatelessWidget {
         ),
         children: const [
           TextSpan(
-              text: 'Habit', style: TextStyle(color: const Color(0xFFF4F6FB))),
+            text: 'Habit',
+            style: TextStyle(color: const Color(0xFFF4F6FB)),
+          ),
           TextSpan(
-              text: 'Quest', style: TextStyle(color: const Color(0xFF55B7FF))),
+            text: 'Quest',
+            style: TextStyle(color: const Color(0xFF55B7FF)),
+          ),
         ],
       ),
     );

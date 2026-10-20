@@ -1,4 +1,4 @@
-﻿import 'dart:ui';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'quest_logo.dart';
 
@@ -65,7 +65,7 @@ class PremiumBackground extends StatelessWidget {
               colors: [
                 Color(0xFF101722),
                 AppColors.background,
-                Color(0xFF090B12)
+                Color(0xFF090B12),
               ],
             ),
           ),
@@ -80,7 +80,19 @@ class PremiumBackground extends StatelessWidget {
           left: -165,
           child: _GlowOrb(color: AppColors.blue.withValues(alpha: 0.09)),
         ),
-        Positioned.fill(child: child),
+        Positioned.fill(
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.sizeOf(context).width > 800
+                    ? 680
+                    : double.infinity,
+              ),
+              child: SizedBox.expand(child: child),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -99,9 +111,7 @@ class _GlowOrb extends StatelessWidget {
         height: 300,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: RadialGradient(
-            colors: [color, color.withValues(alpha: 0)],
-          ),
+          gradient: RadialGradient(colors: [color, color.withValues(alpha: 0)]),
         ),
       ),
     );
@@ -165,11 +175,7 @@ class GlassCard extends StatelessWidget {
 }
 
 class SectionHeading extends StatelessWidget {
-  const SectionHeading({
-    super.key,
-    required this.title,
-    this.trailing,
-  });
+  const SectionHeading({super.key, required this.title, this.trailing});
 
   final String title;
   final Widget? trailing;
@@ -182,9 +188,9 @@ class SectionHeading extends StatelessWidget {
           child: Text(
             title,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.3,
-                ),
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.3,
+            ),
           ),
         ),
         if (trailing != null) trailing!,
@@ -210,6 +216,7 @@ class HabitQuestBrand extends StatelessWidget {
     );
   }
 }
+
 class CategorySelector extends StatelessWidget {
   const CategorySelector({
     super.key,
@@ -241,12 +248,15 @@ class CategorySelector extends StatelessWidget {
               onTap: () => onChanged(category),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 180),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   gradient: selected
                       ? const LinearGradient(
-                          colors: [Color(0xFF19344A), Color(0xFF282348)])
+                          colors: [Color(0xFF19344A), Color(0xFF282348)],
+                        )
                       : null,
                   color: selected ? null : const Color(0x99141922),
                   borderRadius: BorderRadius.circular(15),
@@ -259,14 +269,20 @@ class CategorySelector extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(habitCategoryIcon(category),
-                        size: 18, color: selected ? AppColors.blue : accent),
+                    Icon(
+                      habitCategoryIcon(category),
+                      size: 18,
+                      color: selected ? AppColors.blue : accent,
+                    ),
                     const SizedBox(width: 8),
-                    Text(category,
-                        style: TextStyle(
-                            color: selected ? AppColors.text : AppColors.muted,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600)),
+                    Text(
+                      category,
+                      style: TextStyle(
+                        color: selected ? AppColors.text : AppColors.muted,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ],
                 ),
               ),

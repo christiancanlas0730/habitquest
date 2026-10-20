@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "habit__quest" "\0"
+            VALUE "CompanyName", "com.habitquest" "\0"
+            VALUE "FileDescription", "HabitQuest" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "habit__quest" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "habit__quest.exe" "\0"
-            VALUE "ProductName", "habit__quest" "\0"
+            VALUE "InternalName", "HabitQuest" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 HabitQuest. All rights reserved." "\0"
+            VALUE "OriginalFilename", "HabitQuest.exe" "\0"
+            VALUE "ProductName", "HabitQuest" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
@@ -119,3 +119,5 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
+
+

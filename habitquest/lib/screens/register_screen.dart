@@ -4,14 +4,17 @@ import '../widgets/premium_ui.dart';
 import 'login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
+  const RegisterScreen({super.key, this.authRepository});
+
+  final AuthRepository? authRepository;
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final AuthService authService = AuthService();
+  late final AuthRepository authService =
+      widget.authRepository ?? AuthService();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool isLoading = false;
@@ -20,12 +23,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> register() async {
     final email = emailController.text.trim();
     final password = passwordController.text;
-    if (email.isEmpty || password.isEmpty) {
-      showMessage('Please complete all fields.');
-      return;
-    }
-    if (password.length < 6) {
-      showMessage('Password must be at least 6 characters.');
+    final error = RegisterFormValidation.error(email, password);
+    if (error != null) {
+      showMessage(error);
       return;
     }
     setState(() {
@@ -34,8 +34,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     try {
       final response = await authService.register(email, password);
       if (!mounted) return;
-      if (response.user != null) {
-        showMessage('Account created successfully. You can now log in.');
+      if (response.hasUser) {
+        showMessage(
+          !response.hasSession
+              ? 'Check your email and confirm your address before logging in.'
+              : 'Account created successfully.',
+        );
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const LoginScreen()),
@@ -43,9 +47,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
       } else {
         showMessage('Registration failed.');
       }
-    } catch (e) {
+    } catch (error) {
       if (!mounted) return;
-      showMessage('Registration failed:\n$e');
+      showMessage(
+        error is AuthRepositoryException
+            ? AuthService.userFacingAuthErrorCode(
+                error.code,
+                fallback: 'Registration failed. Please try again.',
+              )
+            : 'Registration failed. Please try again.',
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -86,17 +97,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   children: [
                     const HabitQuestBrand(),
                     const SizedBox(height: 27),
-                    const Text('Create your account',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            color: AppColors.text,
-                            fontSize: 25,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: -0.5)),
+                    const Text(
+                      'Create your account',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: AppColors.text,
+                        fontSize: 25,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
                     const SizedBox(height: 6),
-                    const Text('Build a routine that feels like yours.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: AppColors.muted, fontSize: 13)),
+                    const Text(
+                      'Build a routine that feels like yours.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: AppColors.muted, fontSize: 13),
+                    ),
                     const SizedBox(height: 24),
                     GlassCard(
                       padding: const EdgeInsets.all(18),
@@ -108,11 +124,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             textInputAction: TextInputAction.next,
                             autofillHints: const [
                               AutofillHints.newUsername,
-                              AutofillHints.email
+                              AutofillHints.email,
                             ],
                             decoration: premiumInputDecoration(
-                                hintText: 'Email address',
-                                prefixIcon: Icons.mail_outline_rounded),
+                              hintText: 'Email address',
+                              prefixIcon: Icons.mail_outline_rounded,
+                            ),
                           ),
                           const SizedBox(height: 13),
                           TextField(
@@ -121,24 +138,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             textInputAction: TextInputAction.done,
                             autofillHints: const [AutofillHints.newPassword],
                             onSubmitted: (_) => register(),
-                            decoration: premiumInputDecoration(
-                                    hintText: 'Password',
-                                    prefixIcon: Icons.lock_outline_rounded)
-                                .copyWith(
-                              suffixIcon: IconButton(
-                                tooltip: hidePassword
-                                    ? 'Show password'
-                                    : 'Hide password',
-                                onPressed: () => setState(
-                                    () => hidePassword = !hidePassword),
-                                icon: Icon(
-                                    hidePassword
-                                        ? Icons.visibility_off_outlined
-                                        : Icons.visibility_outlined,
-                                    color: AppColors.muted,
-                                    size: 20),
-                              ),
-                            ),
+                            decoration:
+                                premiumInputDecoration(
+                                  hintText: 'Password',
+                                  prefixIcon: Icons.lock_outline_rounded,
+                                ).copyWith(
+                                  suffixIcon: IconButton(
+                                    tooltip: hidePassword
+                                        ? 'Show password'
+                                        : 'Hide password',
+                                    onPressed: () => setState(
+                                      () => hidePassword = !hidePassword,
+                                    ),
+                                    icon: Icon(
+                                      hidePassword
+                                          ? Icons.visibility_off_outlined
+                                          : Icons.visibility_outlined,
+                                      color: AppColors.muted,
+                                      size: 20,
+                                    ),
+                                  ),
+                                ),
                           ),
                           const SizedBox(height: 20),
                           GradientActionButton(
@@ -154,21 +174,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text('Already have an account?',
-                            style: TextStyle(
-                                color: AppColors.muted, fontSize: 13)),
+                        const Text(
+                          'Already have an account?',
+                          style: TextStyle(
+                            color: AppColors.muted,
+                            fontSize: 13,
+                          ),
+                        ),
                         TextButton(
                           onPressed: () {
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => const LoginScreen()),
+                                builder: (context) => const LoginScreen(),
+                              ),
                             );
                           },
-                          child: const Text('Log in',
-                              style: TextStyle(
-                                  color: AppColors.blue,
-                                  fontWeight: FontWeight.w700)),
+                          child: const Text(
+                            'Log in',
+                            style: TextStyle(
+                              color: AppColors.blue,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -180,5 +208,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
       ),
     );
+  }
+}
+
+class RegisterFormValidation {
+  const RegisterFormValidation._();
+
+  static String? error(String email, String password) {
+    if (email.trim().isEmpty || password.isEmpty) {
+      return 'Please complete all fields.';
+    }
+    if (password.length < 6) {
+      return 'Password must be at least 6 characters.';
+    }
+    return null;
   }
 }

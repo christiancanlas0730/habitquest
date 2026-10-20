@@ -4,8 +4,14 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+val signingPropertiesFile = rootProject.file("key.properties")
+val signingProperties = java.util.Properties()
+if (signingPropertiesFile.exists()) {
+    signingPropertiesFile.inputStream().use(signingProperties::load)
+}
+
 android {
-    namespace = "com.example.habit__quest"
+    namespace = "com.habitquest.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -15,8 +21,8 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.habit__quest"
+        // Keep this ID stable for APKPure updates and existing installations.
+        applicationId = "com.habitquest.app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -25,11 +31,28 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        if (signingPropertiesFile.exists()) {
+            create("release") {
+                val storePath = signingProperties.getProperty("storeFile")
+                    ?: throw GradleException("key.properties is missing storeFile")
+                storeFile = rootProject.file(storePath)
+                storePassword = signingProperties.getProperty("storePassword")
+                    ?: throw GradleException("key.properties is missing storePassword")
+                keyAlias = signingProperties.getProperty("keyAlias")
+                    ?: throw GradleException("key.properties is missing keyAlias")
+                keyPassword = signingProperties.getProperty("keyPassword")
+                    ?: throw GradleException("key.properties is missing keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // Never fall back to the debug certificate for a publishable build.
+            if (signingPropertiesFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 }
@@ -43,3 +66,4 @@ kotlin {
 flutter {
     source = "../.."
 }
+

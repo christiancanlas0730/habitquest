@@ -1,0 +1,14 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "HabitQuest (test Supabase)",
+      "type": "dart",
+      "request": "launch",
+      "deviceId": "chrome",
+      "toolArgs": [
+        "--dart-define-from-file=${workspaceFolder}/.vscode/supabase.local.json"
+      ]
+    }
+  ]
+}

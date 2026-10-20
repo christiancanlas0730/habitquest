@@ -23,6 +23,9 @@ migrate_working_dir/
 # is commented out by default.
 #.vscode/
 
+# Local Supabase test-project defines; never commit credentials.
+/.vscode/supabase.local.json
+
 # Flutter/Dart/Pub related
 **/doc/api/
 **/ios/Flutter/.last_build_id
@@ -32,6 +35,11 @@ migrate_working_dir/
 .pub/
 /build/
 /coverage/
+/.flutter_appdata/
+/.flutter_local/
+/.dart_appdata/
+/.dart_local/
+/.dart_config/
 
 # Symbolication related
 app.*.symbols
@@ -43,3 +51,8 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Private Android release signing material.
+/android/key.properties
+/android/*.jks
+/android/*.keystore

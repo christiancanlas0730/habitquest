@@ -1,5 +1,5 @@
-﻿name: habit__quest
-description: "A new Flutter project."
+name: habit__quest
+description: "HabitQuest — build better days with small steps."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -31,10 +31,8 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.8
   supabase_flutter: ^2.17.2
+  timezone: ^0.11.2
 
 dev_dependencies:
   flutter_test:

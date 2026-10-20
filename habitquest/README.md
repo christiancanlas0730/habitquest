@@ -1,17 +1,15 @@
-# habit__quest
+# HabitQuest Rebuild
 
-A new Flutter project.
+Fresh Flutter client using the existing `lib/screens`, `lib/services`, `lib/models`, and `lib/widgets` structure. No Supabase project is configured by default.
 
-## Getting Started
+## Local Supabase client configuration
 
-This project is a starting point for a Flutter application.
+Provide only a project URL and its public publishable (anon) key as Dart defines in a local launch profile or command line:
 
-A few resources to get you started if this is your first Flutter project:
+```powershell
+flutter run -d chrome --dart-define=SUPABASE_URL=https://<project-ref>.supabase.co --dart-define=SUPABASE_PUBLISHABLE_KEY=<publishable-key>
+```
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+The app displays a local setup screen when either value is absent. Never use a service-role key in a client build. Do not commit real project credentials. Phase 2 has not configured a live project.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+The clean-install schema candidate is in `supabase_clean_project/supabase/migrations/`. It is documentation/source only in this phase and has not been applied. See `docs/phase-2-notes.md` for the integration boundary.

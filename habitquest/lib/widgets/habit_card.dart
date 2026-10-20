@@ -10,6 +10,10 @@ class HabitCard extends StatelessWidget {
     this.onComplete,
     this.isCompleted,
     this.showStreakRing = false,
+    this.dateStatusUnavailable = false,
+    this.accountLocalDate,
+    this.completionHistory,
+    this.streakUnavailable = false,
   });
 
   final Habit habit;
@@ -17,10 +21,21 @@ class HabitCard extends StatelessWidget {
   final VoidCallback? onComplete;
   final bool? isCompleted;
   final bool showStreakRing;
+  final bool dateStatusUnavailable;
+  final DateTime? accountLocalDate;
+  final Iterable<DateTime>? completionHistory;
+  final bool streakUnavailable;
 
   @override
   Widget build(BuildContext context) {
-    final completed = isCompleted ?? habit.lastCompletedDate != null;
+    final completed = !dateStatusUnavailable &&
+        (isCompleted ?? habit.lastCompletedDate != null);
+    final currentStreak = dateStatusUnavailable || accountLocalDate == null
+        ? 0
+        : habit.currentStreakOn(
+            accountLocalDate!,
+            completionHistory: completionHistory,
+          );
     final accent = habitCategoryColor(habit.category);
 
     return AnimatedContainer(
@@ -55,6 +70,7 @@ class HabitCard extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(19),
           onTap: onTap,
+          onLongPress: null,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 13),
             child: Row(
@@ -67,8 +83,11 @@ class HabitCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(15),
                     border: Border.all(color: accent.withValues(alpha: 0.20)),
                   ),
-                  child: Icon(habitCategoryIcon(habit.category),
-                      color: accent, size: 24),
+                  child: Icon(
+                    habitCategoryIcon(habit.category),
+                    color: accent,
+                    size: 24,
+                  ),
                 ),
                 const SizedBox(width: 13),
                 Expanded(
@@ -83,33 +102,48 @@ class HabitCard extends StatelessWidget {
                           color: completed ? AppColors.muted : AppColors.text,
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
-                          decoration:
-                              completed ? TextDecoration.lineThrough : null,
+                          decoration: completed
+                              ? TextDecoration.lineThrough
+                              : null,
                           decorationColor: AppColors.muted,
                         ),
                       ),
                       const SizedBox(height: 5),
                       Text(
                         habit.frequency +
-                            (habit.streak > 0
-                                ? '  ·  ${habit.streak} day streak'
+                            (dateStatusUnavailable
+                                ? '  ·  today status unavailable'
+                                : habit.frequency == 'Twice a week' &&
+                                      streakUnavailable
+                                ? '  ·  streak unavailable'
+                                : currentStreak > 0
+                                ? '  ·  $currentStreak day streak'
                                 : ''),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                            color: AppColors.muted, fontSize: 12),
+                          color: AppColors.muted,
+                          fontSize: 12,
+                        ),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(width: 8),
                 if (onComplete != null)
-                  _CompletionButton(completed: completed, onPressed: onComplete)
+                  _CompletionButton(
+                    completed: completed,
+                    statusKnown: !dateStatusUnavailable,
+                    onPressed: onComplete,
+                  )
                 else if (showStreakRing)
-                  _StreakRing(streak: habit.streak, color: accent)
+                  _StreakRing(streak: currentStreak, color: accent)
                 else
-                  const Icon(Icons.chevron_right_rounded,
-                      color: AppColors.faint, size: 22),
+                  const Icon(
+                    Icons.chevron_right_rounded,
+                    color: AppColors.faint,
+                    size: 22,
+                  ),
               ],
             ),
           ),
@@ -119,41 +153,97 @@ class HabitCard extends StatelessWidget {
   }
 }
 
-class _CompletionButton extends StatelessWidget {
-  const _CompletionButton({required this.completed, required this.onPressed});
+class _CompletionButton extends StatefulWidget {
+  const _CompletionButton({
+    required this.completed,
+    required this.statusKnown,
+    required this.onPressed,
+  });
 
   final bool completed;
+  final bool statusKnown;
   final VoidCallback? onPressed;
 
   @override
+  State<_CompletionButton> createState() => _CompletionButtonState();
+}
+
+class _CompletionButtonState extends State<_CompletionButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 360),
+  );
+
+  @override
+  void didUpdateWidget(covariant _CompletionButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!oldWidget.completed && widget.completed) {
+      _controller.forward(from: 0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final completed = widget.completed;
     return Semantics(
       button: true,
-      label: completed ? 'Completed today' : 'Complete habit',
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: completed ? null : onPressed,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          width: 36,
-          height: 36,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: completed
-                ? const LinearGradient(
-                    colors: [AppColors.green, Color(0xFF36B894)])
-                : null,
-            color: completed ? null : const Color(0x331A2530),
-            border: Border.all(
-              color: completed
-                  ? AppColors.green
-                  : AppColors.faint.withValues(alpha: 0.55),
+      label: completed
+          ? 'Completed today'
+          : widget.statusKnown
+          ? 'Complete habit'
+          : 'Check completion and complete habit',
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: completed ? null : widget.onPressed,
+          child: Padding(
+            padding: const EdgeInsets.all(4),
+            child: ScaleTransition(
+              scale: Tween<double>(begin: 0.72, end: 1).animate(
+                CurvedAnimation(parent: _controller, curve: Curves.elasticOut),
+              ),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 240),
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: completed
+                      ? const LinearGradient(
+                          colors: [AppColors.green, Color(0xFF36B894)],
+                        )
+                      : null,
+                  color: completed ? null : const Color(0x331A2530),
+                  border: Border.all(
+                    color: completed
+                        ? AppColors.green
+                        : AppColors.faint.withValues(alpha: 0.55),
+                  ),
+                  boxShadow: completed
+                      ? [
+                          BoxShadow(
+                            color: AppColors.green.withValues(alpha: 0.28),
+                            blurRadius: 12,
+                            spreadRadius: 1,
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Icon(
+                  Icons.check_rounded,
+                  color: completed ? const Color(0xFF07140F) : AppColors.faint,
+                  size: 21,
+                ),
+              ),
             ),
-          ),
-          child: Icon(
-            Icons.check_rounded,
-            color: completed ? const Color(0xFF07140F) : AppColors.faint,
-            size: 21,
           ),
         ),
       ),
@@ -187,16 +277,24 @@ class _StreakRing extends StatelessWidget {
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('$streak',
-                  style: const TextStyle(
-                      color: AppColors.text,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      height: 1)),
+              Text(
+                '$streak',
+                style: const TextStyle(
+                  color: AppColors.text,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  height: 1,
+                ),
+              ),
               const SizedBox(height: 2),
-              const Text('days',
-                  style: TextStyle(
-                      color: AppColors.muted, fontSize: 8, height: 1)),
+              const Text(
+                'days',
+                style: TextStyle(
+                  color: AppColors.muted,
+                  fontSize: 8,
+                  height: 1,
+                ),
+              ),
             ],
           ),
         ],
